@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#161619">
+    <meta name="description" content="Выбери ОГЭ или ЕГЭ, свою операционную систему и скачай программы для подготовки к информатике.">
+    <title>Программы для информатики · КИТОН</title>
+    <link rel="icon" href="kiton-mark.png" type="image/png">
+    <link rel="stylesheet" href="styles.css">
+    <script src="setup.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">К программам</a>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="КИТОН, к началу страницы">
+        <img src="kiton-mark.png" alt="" width="38" height="38">
+        <span class="brand-copy"><strong>КИТОН</strong><span>ИНФОРМАТИКА</span></span>
+      </a>
+      <span class="topbar-label">Подготовка к экзамену</span>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="page-title">
+        <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> Рабочее место для информатики</p>
+        <h1 id="page-title">Нужные программы.<br>Понятная установка.</h1>
+        <p class="hero-lead">Выбери экзамен и операционную систему. Скачай программу и открой установщик.</p>
+      </section>
+
+      <section class="setup" aria-labelledby="program-title">
+        <div class="selector-row">
+          <div class="exam-picker">
+            <span class="control-label" id="exam-label">Экзамен</span>
+            <div class="exam-tabs" role="tablist" aria-labelledby="exam-label">
+              <button class="exam-tab" id="oge-tab" type="button" role="tab" aria-selected="true" aria-controls="oge-panel" tabindex="0" data-exam="oge">
+                <span class="exam-number">9</span><span>ОГЭ</span>
+              </button>
+              <button class="exam-tab" id="ege-tab" type="button" role="tab" aria-selected="false" aria-controls="ege-panel" tabindex="-1" data-exam="ege">
+                <span class="exam-number">11</span><span>ЕГЭ</span>
+              </button>
+            </div>
+          </div>
+          <div class="os-picker">
+            <label class="control-label" for="os-choice">Операционная система</label>
+            <select id="os-choice" name="os">
+              <option value="windows">Windows</option>
+              <option value="macos">macOS</option>
+              <option value="linux">Linux</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" id="exam-kicker">9 класс</p>
+            <h2 id="program-title">Программы для ОГЭ</h2>
+          </div>
+          <p class="section-intro" id="exam-description">Выбери программу, чтобы открыть страницу загрузки.</p>
+        </div>
+
+        <section class="program-grid" id="oge-panel" role="tabpanel" aria-labelledby="oge-tab" data-exam-panel="oge">
+          <article class="program-card" data-program="python">
+            <div class="card-topline"><span class="card-type">Программирование</span><span class="tag tag-blue">Начни здесь</span></div>
+            <h3>Python + IDLE</h3>
+            <p>Язык программирования и простой редактор кода. IDLE устанавливается вместе с Python.</p>
+            <a class="button button-primary download-link" data-app="python" href="https://www.python.org/downloads/windows/" target="_blank" rel="noopener noreferrer">Скачать Python <span aria-hidden="true">↓</span></a>
+            <span class="card-hint">После загрузки открой файл и нажми «Установить».</span>
+          </article>
+
+          <article class="program-card" data-program="libreoffice">
+            <div class="card-topline"><span class="card-type">Документы и таблицы</span><span class="tag tag-blue">Для практики</span></div>
+            <h3>LibreOffice</h3>
+            <p>Writer для документов, Calc для таблиц и Impress для презентаций.</p>
+            <a class="button button-secondary download-link" data-app="libreoffice" href="https://www.libreoffice.org/download/" target="_blank" rel="noopener noreferrer">Скачать LibreOffice <span aria-hidden="true">↗</span></a>
+            <span class="card-hint">На странице загрузки выбери свою систему.</span>
+          </article>
+
+          <article class="program-card" data-program="kumir">
+            <div class="card-topline"><span class="card-type">Алгоритмы</span><span class="tag tag-green">ОГЭ</span></div>
+            <h3>КуМир</h3>
+            <p>Среда для задач с исполнителем «Робот».</p>
+            <a class="button button-secondary download-link" data-app="kumir" href="https://www.niisi.ru/kumir/dl.htm" target="_blank" rel="noopener noreferrer">Скачать КуМир <span aria-hidden="true">↗</span></a>
+            <span class="card-hint">Выбери установщик для своей системы.</span>
+          </article>
+        </section>
+
+        <section class="program-grid" id="ege-panel" role="tabpanel" aria-labelledby="ege-tab" data-exam-panel="ege" hidden>
+          <article class="program-card" data-program="python">
+            <div class="card-topline"><span class="card-type">Программирование</span><span class="tag tag-blue">Начни здесь</span></div>
+            <h3>Python + IDLE</h3>
+            <p>Пиши и запускай программы. IDLE устанавливается вместе с Python.</p>
+            <a class="button button-primary download-link" data-app="python" href="https://www.python.org/downloads/windows/" target="_blank" rel="noopener noreferrer">Скачать Python <span aria-hidden="true">↓</span></a>
+            <span class="card-hint">После загрузки открой файл и нажми «Установить».</span>
+          </article>
+
+          <article class="program-card" data-program="pycharm">
+            <div class="card-topline"><span class="card-type">Среда разработки</span><span class="tag">По желанию</span></div>
+            <h3>PyCharm</h3>
+            <p>Удобен для больших программ. Для начала достаточно Python и IDLE.</p>
+            <a class="button button-secondary download-link" data-app="pycharm" href="https://www.jetbrains.com/pycharm/download/" target="_blank" rel="noopener noreferrer">Скачать PyCharm <span aria-hidden="true">↗</span></a>
+            <span class="card-hint">На странице выбери систему и нажми Download.</span>
+          </article>
+
+          <article class="program-card" data-program="libreoffice">
+            <div class="card-topline"><span class="card-type">Документы и таблицы</span><span class="tag">Дополнительно</span></div>
+            <h3>LibreOffice</h3>
+            <p>Writer, Calc и Impress для практики с документами, таблицами и презентациями.</p>
+            <a class="button button-secondary download-link" data-app="libreoffice" href="https://www.libreoffice.org/download/" target="_blank" rel="noopener noreferrer">Скачать LibreOffice <span aria-hidden="true">↗</span></a>
+            <span class="card-hint">На странице загрузки выбери свою систему.</span>
+          </article>
+        </section>
+
+        <aside class="next-step" aria-live="polite">
+          <span class="next-step-mark" aria-hidden="true">→</span>
+          <p id="next-step-text"><strong>Что дальше?</strong> Скачай Python, открой файл из папки «Загрузки» и заверши установку. IDLE появится вместе с Python.</p>
+        </aside>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <a class="brand brand-footer" href="#top"><img src="kiton-mark.png" alt="" width="30" height="30"><span class="brand-copy"><strong>КИТОН</strong><span>ИНФОРМАТИКА</span></span></a>
+      <span>Выбери программу, скачай и открой установщик.</span>
+    </footer>
+  </body>
+</html>
