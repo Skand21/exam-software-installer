@@ -195,7 +195,7 @@ func installWinget(app program) error {
 }
 
 func wingetPackageInstalled(packageID string) (bool, error) {
-	cmd := exec.Command("winget.exe", "list", "--exact", "--id", packageID, "--source", "winget", "--disable-interactivity")
+	cmd := exec.Command("winget.exe", "list", "--exact", "--id", packageID, "--source", "winget", "--accept-source-agreements", "--disable-interactivity")
 	var output bytes.Buffer
 	cmd.Stdout = &output
 	cmd.Stderr = &output
