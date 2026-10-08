@@ -95,10 +95,6 @@ jobs:
         with:
           name: windows-installer-ege-python,pycharm,libreoffice
           path: installers/ege
-      - uses: actions/download-artifact@v4
-        with:
-          name: windows-installer-oge-python,kumir,libreoffice
-          path: installers/oge
       - name: Install and verify EGE software in an isolated Windows runner
         shell: pwsh
         run: |
@@ -114,11 +110,27 @@ jobs:
           if (-not $soffice) { throw 'LibreOffice executable was not found after installation' }
           & $soffice.FullName --version
           if ($LASTEXITCODE -ne 0) { throw 'LibreOffice could not be started' }
-      - name: Install and verify OGE Kumir software in an isolated Windows runner
+  install-smoke-oge:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-installer-oge-python,kumir,libreoffice
+          path: installers/oge
+      - name: Install and verify OGE software in a clean Windows runner
         shell: pwsh
         run: |
           & "$PWD\installers\oge\KITON-Setup-OGE-Python-Kumir-LibreOffice.exe" --yes
           if ($LASTEXITCODE -ne 0) { throw "OGE installer returned $LASTEXITCODE" }
+          py.exe -3.14 -c "import idlelib, tkinter; print('Python and IDLE are available')"
+          if ($LASTEXITCODE -ne 0) { throw 'Python or IDLE verification failed' }
+          $soffice = Get-ChildItem "$env:ProgramFiles\LibreOffice\program\soffice.exe", "${env:ProgramFiles(x86)}\LibreOffice\program\soffice.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $soffice) { throw 'LibreOffice executable was not found after installation' }
+          & $soffice.FullName --version
+          if ($LASTEXITCODE -ne 0) { throw 'LibreOffice could not be started' }
           $kumir = Join-Path ${env:ProgramFiles(x86)} 'Kumir-2.1.0-rc11\bin\kumir2-classic.exe'
           if (-not (Test-Path $kumir)) { throw "Kumir executable was not found after installation: $kumir" }
 
