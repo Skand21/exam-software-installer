@@ -45,3 +45,36 @@ func TestParseProfileRejectsCrossExamPrograms(t *testing.T) {
 		}
 	}
 }
+
+func TestWingetListContainsPackage(t *testing.T) {
+	tests := []struct {
+		name, output, packageID string
+		want                    bool
+	}{
+		{
+			name:      "installed package",
+			output:    "Name Version Id Source\nPyCharm 2026.2.3 JetBrains.PyCharm winget",
+			packageID: "JetBrains.PyCharm",
+			want:      true,
+		},
+		{
+			name:      "not installed",
+			output:    "No installed package found matching input criteria.",
+			packageID: "JetBrains.PyCharm",
+			want:      false,
+		},
+		{
+			name:      "similar id is not a match",
+			output:    "Name Version Id Source\nPyCharm Preview 2026.2.3 JetBrains.PyCharm.Preview winget",
+			packageID: "JetBrains.PyCharm",
+			want:      false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := wingetListContainsPackage(tt.output, tt.packageID); got != tt.want {
+				t.Fatalf("wingetListContainsPackage() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

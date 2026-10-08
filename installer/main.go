@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/sha256"
 	"errors"
 	"fmt"
@@ -16,8 +17,8 @@ import (
 )
 
 var (
-	exam = "oge"
-	apps = "python"
+	exam     = "oge"
+	apps     = "python"
 	testMode = "false"
 )
 
@@ -172,6 +173,15 @@ func printPlan(examName string, selection []program) {
 }
 
 func installWinget(app program) error {
+	installed, err := wingetPackageInstalled(app.wingetID)
+	if err != nil {
+		return fmt.Errorf("не удалось проверить, установлена ли программа: %w", err)
+	}
+	if installed {
+		fmt.Printf("Уже установлено: %s. Обновление не выполняется.\n", app.name)
+		return nil
+	}
+
 	args := []string{
 		"install", "--exact", "--id", app.wingetID,
 		"--source", "winget", "--accept-source-agreements",
@@ -182,6 +192,29 @@ func installWinget(app program) error {
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	return cmd.Run()
+}
+
+func wingetPackageInstalled(packageID string) (bool, error) {
+	cmd := exec.Command("winget.exe", "list", "--exact", "--id", packageID, "--source", "winget", "--disable-interactivity")
+	var output bytes.Buffer
+	cmd.Stdout = &output
+	cmd.Stderr = &output
+	if err := cmd.Run(); err != nil {
+		return false, err
+	}
+	return wingetListContainsPackage(output.String(), packageID), nil
+}
+
+func wingetListContainsPackage(output, packageID string) bool {
+	for _, line := range strings.Split(output, "\n") {
+		fields := strings.Fields(line)
+		for _, field := range fields {
+			if strings.EqualFold(strings.Trim(field, "│|"), packageID) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func installKumir(app program) error {
@@ -229,8 +262,12 @@ func installKumir(app program) error {
 }
 
 func verifyKumirSignature(path string) error {
-	powershell := "Get-AuthenticodeSignature -LiteralPath '" + strings.ReplaceAll(path, "'", "''") + "' | ForEach-Object { if ($_.Status -ne 'Valid' -or $_.SignerCertificate.Subject -notmatch 'FGU FNTS NIISI RAN') { exit 1 } }"
-	cmd := exec.Command("powershell.exe", "-NoProfile", "-NonInteractive", "-Command", powershell)
+	powershell := "Import-Module Microsoft.PowerShell.Security -ErrorAction Stop; $signature = Get-AuthenticodeSignature -LiteralPath '" + strings.ReplaceAll(path, "'", "''") + "'; if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch 'FGU FNTS NIISI RAN') { exit 1 }"
+	ps := filepath.Join(os.Getenv("WINDIR"), "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
+	if _, err := os.Stat(ps); err != nil {
+		ps = "powershell.exe"
+	}
+	cmd := exec.Command(ps, "-NoProfile", "-NonInteractive", "-Command", powershell)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
