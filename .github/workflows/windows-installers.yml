@@ -102,8 +102,8 @@ jobs:
       - name: Install and verify EGE software in an isolated Windows runner
         shell: pwsh
         run: |
-          $result = Start-Process -FilePath "$PWD\installers\ege\KITON-Setup-EGE-Python-PyCharm-LibreOffice.exe" -ArgumentList '--yes' -Wait -PassThru
-          if ($result.ExitCode -ne 0) { throw "EGE installer returned $($result.ExitCode)" }
+          & "$PWD\installers\ege\KITON-Setup-EGE-Python-PyCharm-LibreOffice.exe" --yes
+          if ($LASTEXITCODE -ne 0) { throw "EGE installer returned $LASTEXITCODE" }
           py.exe -3.14 -c "import idlelib, tkinter; print('Python and IDLE are available')"
           if ($LASTEXITCODE -ne 0) { throw 'Python or IDLE verification failed' }
           if (-not (Test-Path "$env:ProgramFiles\JetBrains\PyCharm 2026.2\bin\pycharm64.exe")) {
@@ -117,8 +117,8 @@ jobs:
       - name: Install and verify OGE Kumir software in an isolated Windows runner
         shell: pwsh
         run: |
-          $result = Start-Process -FilePath "$PWD\installers\oge\KITON-Setup-OGE-Python-Kumir-LibreOffice.exe" -ArgumentList '--yes' -Wait -PassThru
-          if ($result.ExitCode -ne 0) { throw "OGE installer returned $($result.ExitCode)" }
+          & "$PWD\installers\oge\KITON-Setup-OGE-Python-Kumir-LibreOffice.exe" --yes
+          if ($LASTEXITCODE -ne 0) { throw "OGE installer returned $LASTEXITCODE" }
           $entries = Get-ItemProperty 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue
           if (-not ($entries | Where-Object { $_.DisplayName -match 'Kumir|КуМир' })) { throw 'Kumir uninstall entry was not found after installation' }
 
