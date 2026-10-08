@@ -200,6 +200,9 @@ func wingetPackageInstalled(packageID string) (bool, error) {
 	cmd.Stdout = &output
 	cmd.Stderr = &output
 	if err := cmd.Run(); err != nil {
+		if strings.Contains(strings.ToLower(output.String()), "0x8a150014") {
+			return false, nil
+		}
 		return false, err
 	}
 	return wingetListContainsPackage(output.String(), packageID), nil
