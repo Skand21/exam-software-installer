@@ -119,8 +119,8 @@ jobs:
         run: |
           & "$PWD\installers\oge\KITON-Setup-OGE-Python-Kumir-LibreOffice.exe" --yes
           if ($LASTEXITCODE -ne 0) { throw "OGE installer returned $LASTEXITCODE" }
-          $entries = Get-ItemProperty 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKCU:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue
-          if (-not ($entries | Where-Object { $_.DisplayName -match 'Kumir|КуМир' })) { throw 'Kumir uninstall entry was not found after installation' }
+          $kumir = Join-Path ${env:ProgramFiles(x86)} 'Kumir-2.1.0-rc11\bin\kumir2-classic.exe'
+          if (-not (Test-Path $kumir)) { throw "Kumir executable was not found after installation: $kumir" }
 
   publish:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
