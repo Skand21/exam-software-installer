@@ -58,6 +58,9 @@ h2 { margin-bottom: 0; font-size: clamp(27px, 3.5vw, 36px); line-height: 1.15; l
 .program-card:hover { transform: translateY(-2px); border-color: #50505a; }
 .card-topline { display: flex; width: 100%; min-height: 24px; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 17px; }
 .card-type { color: #a1a1aa; font-size: 10px; font-weight: 650; letter-spacing: .07em; text-transform: uppercase; }
+.card-selection { display: flex; min-height: 28px; align-items: center; gap: 9px; margin: -3px 0 12px; color: #c4c4cc; cursor: pointer; font-size: 12px; }
+.card-selection input { width: 17px; height: 17px; accent-color: var(--blue); }
+.card-selection input:disabled { cursor: not-allowed; }
 .tag { display: inline-flex; min-height: 23px; align-items: center; padding: 2px 8px; border: 1px solid #45454e; border-radius: 6px; color: #c4c4cc; font-size: 10px; font-weight: 600; white-space: nowrap; }
 .tag-blue { border-color: #315174; background: #1c2938; color: #93c5fd; }
 .tag-green { border-color: #28513a; background: #1a2b22; color: #86efac; }
@@ -73,6 +76,12 @@ h2 { margin-bottom: 0; font-size: clamp(27px, 3.5vw, 36px); line-height: 1.15; l
 .next-step-mark { display: grid; width: 23px; height: 23px; flex: 0 0 auto; place-items: center; border: 1px solid #426384; border-radius: 50%; color: #93c5fd; font-size: 12px; }
 .next-step p { margin: 0; color: #c4c4cc; font-size: 12px; }
 .next-step strong { color: #e5e7eb; }
+.install-action { position: sticky; bottom: 12px; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 18px; padding: 18px 20px; border: 1px solid #4678b6; border-radius: 10px; background: #202b38; box-shadow: 0 8px 24px #0005; }
+.install-action h3 { margin: 0 0 4px; font-size: 16px; font-weight: 650; }
+.install-action p { margin: 0; color: #d4d4d8; font-size: 12px; }
+.install-action .install-note { margin-top: 4px; color: #a1a1aa; }
+.install-action .button { flex: 0 0 auto; cursor: pointer; font: inherit; }
+.installer-unavailable { margin: 16px 0 0; color: var(--muted); font-size: 12px; }
 code { padding: 2px 5px; border-radius: 4px; background: var(--surface-raised); color: #bfdbfe; font-size: .95em; }
 .footer { display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 76px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
 .brand-footer { gap: 8px; }
@@ -105,6 +114,8 @@ code { padding: 2px 5px; border-radius: 4px; background: var(--surface-raised); 
   .program-card p { min-height: 0; margin-bottom: 15px; }
   .button { width: 100%; min-height: 45px; }
   .next-step { margin-top: 12px; }
+  .install-action { position: sticky; bottom: 8px; align-items: stretch; flex-direction: column; gap: 12px; padding: 15px; }
+  .install-action .button { width: 100%; }
   .footer { align-items: flex-start; flex-direction: column; justify-content: center; gap: 10px; padding: 16px 0; }
 }
 

@@ -1,0 +1,160 @@
+name: Windows installers
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/windows-installers.yml'
+      - 'installer/**'
+      - 'site/**'
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/windows-installers.yml'
+      - 'installer/**'
+      - 'site/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.x'
+      - name: Test installer profile selection
+        run: node --test site/setup-core.test.mjs
+      - name: Test installer application profiles
+        working-directory: installer
+        run: go test ./...
+
+  build:
+    needs: validate
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - exam: oge
+            apps: python
+            file: KITON-Setup-OGE-Python.exe
+          - exam: oge
+            apps: python,kumir
+            file: KITON-Setup-OGE-Python-Kumir.exe
+          - exam: oge
+            apps: python,libreoffice
+            file: KITON-Setup-OGE-Python-LibreOffice.exe
+          - exam: oge
+            apps: python,kumir,libreoffice
+            file: KITON-Setup-OGE-Python-Kumir-LibreOffice.exe
+          - exam: ege
+            apps: python
+            file: KITON-Setup-EGE-Python.exe
+          - exam: ege
+            apps: python,pycharm
+            file: KITON-Setup-EGE-Python-PyCharm.exe
+          - exam: ege
+            apps: python,libreoffice
+            file: KITON-Setup-EGE-Python-LibreOffice.exe
+          - exam: ege
+            apps: python,pycharm,libreoffice
+            file: KITON-Setup-EGE-Python-PyCharm-LibreOffice.exe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.x'
+      - name: Build Windows x64 installer
+        working-directory: installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $ldflags = "-X main.exam=${{ matrix.exam }} -X main.apps=${{ matrix.apps }} -X main.testMode=${{ github.event_name == 'pull_request' }}"
+          go build -trimpath -ldflags $ldflags -o "dist\${{ matrix.file }}" .
+          .\dist\${{ matrix.file }} --dry-run
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer-${{ matrix.exam }}-${{ matrix.apps }}
+          path: installer/dist/${{ matrix.file }}
+          if-no-files-found: error
+          retention-days: 14
+
+  install-smoke:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-installer-ege-python,pycharm,libreoffice
+          path: installers/ege
+      - name: Install and verify EGE software in an isolated Windows runner
+        shell: pwsh
+        run: |
+          & "$PWD\installers\ege\KITON-Setup-EGE-Python-PyCharm-LibreOffice.exe" --yes
+          if ($LASTEXITCODE -ne 0) { throw "EGE installer returned $LASTEXITCODE" }
+          py.exe -3.14 -c "import idlelib, tkinter; print('Python and IDLE are available')"
+          if ($LASTEXITCODE -ne 0) { throw 'Python or IDLE verification failed' }
+          if (-not (Test-Path "$env:ProgramFiles\JetBrains\PyCharm 2026.2\bin\pycharm64.exe")) {
+            $pycharm = Get-ChildItem "$env:ProgramFiles", "$env:LOCALAPPDATA\Programs" -Filter pycharm64.exe -File -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            if (-not $pycharm) { throw 'PyCharm executable was not found after installation' }
+          }
+          $soffice = Get-ChildItem "$env:ProgramFiles\LibreOffice\program\soffice.exe", "${env:ProgramFiles(x86)}\LibreOffice\program\soffice.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $soffice) { throw 'LibreOffice executable was not found after installation' }
+          & $soffice.FullName --version
+          if ($LASTEXITCODE -ne 0) { throw 'LibreOffice could not be started' }
+  install-smoke-oge:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    needs: build
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-installer-oge-python,kumir,libreoffice
+          path: installers/oge
+      - name: Install and verify OGE software in a clean Windows runner
+        shell: pwsh
+        run: |
+          & "$PWD\installers\oge\KITON-Setup-OGE-Python-Kumir-LibreOffice.exe" --yes
+          if ($LASTEXITCODE -ne 0) { throw "OGE installer returned $LASTEXITCODE" }
+          py.exe -3.14 -c "import idlelib, tkinter; print('Python and IDLE are available')"
+          if ($LASTEXITCODE -ne 0) { throw 'Python or IDLE verification failed' }
+          $soffice = Get-ChildItem "$env:ProgramFiles\LibreOffice\program\soffice.exe", "${env:ProgramFiles(x86)}\LibreOffice\program\soffice.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $soffice) { throw 'LibreOffice executable was not found after installation' }
+          & $soffice.FullName --version
+          if ($LASTEXITCODE -ne 0) { throw 'LibreOffice could not be started' }
+          $kumir = Join-Path ${env:ProgramFiles(x86)} 'Kumir-2.1.0-rc11\bin\kumir2-classic.exe'
+          if (-not (Test-Path $kumir)) { throw "Kumir executable was not found after installation: $kumir" }
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: windows-installer-*
+          path: dist
+          merge-multiple: true
+      - name: Create release checksums
+        run: sha256sum dist/*.exe > dist/SHA256SUMS.txt
+      - name: Publish current unsigned installers
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=windows-installer-current
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" dist/* --clobber
+          else
+            gh release create "$tag" dist/* --title "KITON Windows installers" --notes "Unsigned Windows x64 installers for the selected OGE/EGE software sets. Verify SHA256SUMS.txt before running."
+          fi

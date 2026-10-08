@@ -1,0 +1,93 @@
+package main
+
+import (
+	"errors"
+	"reflect"
+	"testing"
+)
+
+func TestParseExamProfiles(t *testing.T) {
+	tests := []struct {
+		name string
+		exam string
+		apps string
+		want []string
+	}{
+		{name: "oge python only", exam: "oge", apps: "python", want: []string{"python"}},
+		{name: "oge all", exam: "oge", apps: "python,kumir,libreoffice", want: []string{"python", "kumir", "libreoffice"}},
+		{name: "ege python only", exam: "ege", apps: "python", want: []string{"python"}},
+		{name: "ege all", exam: "ege", apps: "python,pycharm,libreoffice", want: []string{"python", "pycharm", "libreoffice"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseProfile(tt.exam, tt.apps)
+			if err != nil {
+				t.Fatalf("parseProfile returned error: %v", err)
+			}
+			keys := make([]string, len(got))
+			for i, app := range got {
+				keys[i] = app.key
+			}
+			if !reflect.DeepEqual(keys, tt.want) {
+				t.Fatalf("got %v, want %v", keys, tt.want)
+			}
+		})
+	}
+}
+
+func TestParseProfileRejectsCrossExamPrograms(t *testing.T) {
+	for _, tt := range []struct{ exam, apps string }{
+		{exam: "oge", apps: "python,pycharm"},
+		{exam: "ege", apps: "python,kumir"},
+		{exam: "other", apps: "python"},
+	} {
+		if _, err := parseProfile(tt.exam, tt.apps); err == nil {
+			t.Fatalf("parseProfile(%q, %q) unexpectedly succeeded", tt.exam, tt.apps)
+		}
+	}
+}
+
+func TestWingetListContainsPackage(t *testing.T) {
+	tests := []struct {
+		name, output, packageID string
+		want                    bool
+	}{
+		{
+			name:      "installed package",
+			output:    "Name Version Id Source\nPyCharm 2026.2.3 JetBrains.PyCharm winget",
+			packageID: "JetBrains.PyCharm",
+			want:      true,
+		},
+		{
+			name:      "not installed",
+			output:    "No installed package found matching input criteria.",
+			packageID: "JetBrains.PyCharm",
+			want:      false,
+		},
+		{
+			name:      "similar id is not a match",
+			output:    "Name Version Id Source\nPyCharm Preview 2026.2.3 JetBrains.PyCharm.Preview winget",
+			packageID: "JetBrains.PyCharm",
+			want:      false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := wingetListContainsPackage(tt.output, tt.packageID); got != tt.want {
+				t.Fatalf("wingetListContainsPackage() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIsWingetNoApplicationsFound(t *testing.T) {
+	if !isWingetNoApplicationsFound(errors.New("exit status 0x8a150014")) {
+		t.Fatal("expected WinGet's empty inventory result to be recognized")
+	}
+	if isWingetNoApplicationsFound(errors.New("exit status 0x8a150011")) {
+		t.Fatal("unexpected WinGet errors must not be treated as an empty inventory")
+	}
+	if isWingetNoApplicationsFound(nil) {
+		t.Fatal("nil error must not be treated as an empty inventory")
+	}
+}

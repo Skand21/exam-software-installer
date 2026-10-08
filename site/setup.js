@@ -1,3 +1,5 @@
+import { getInstallerDownloadUrl, getSelectedInstallerApps } from './setup-core.mjs';
+
 const examTabs = [...document.querySelectorAll('[data-exam]')];
 const examPanels = [...document.querySelectorAll('[data-exam-panel]')];
 const osChoice = document.querySelector('#os-choice');
@@ -5,6 +7,17 @@ const examTitle = document.querySelector('#program-title');
 const examKicker = document.querySelector('#exam-kicker');
 const examDescription = document.querySelector('#exam-description');
 const nextStepText = document.querySelector('#next-step-text');
+const downloadInstallerButton = document.querySelector('#download-installer');
+const installerSummary = document.querySelector('#installer-summary');
+const installNote = document.querySelector('#install-note');
+const installerUnavailable = document.querySelector('#installer-unavailable');
+const installAction = document.querySelector('#install-action');
+const windowsHints = {
+  python: 'Python и IDLE установятся из выбранного файла ниже.',
+  pycharm: 'PyCharm войдёт в выбранный файл установки ниже.',
+  libreoffice: 'LibreOffice войдёт в выбранный файл установки ниже.',
+  kumir: 'КуМир загрузится внутри установщика; файл проверяется перед запуском.',
+};
 
 const copy = {
   oge: {
@@ -113,9 +126,43 @@ function updateDownloads() {
     link.target = item.file ? '_self' : '_blank';
     if (item.file) link.setAttribute('download', '');
     else link.removeAttribute('download');
-    link.closest('.program-card').querySelector('.card-hint').textContent = item.hint;
+    link.closest('.program-card').querySelector('.card-hint').textContent = osChoice.value === 'windows'
+      ? windowsHints[link.dataset.app]
+      : item.hint;
+    link.hidden = osChoice.value === 'windows';
   });
-  nextStepText.innerHTML = selectedDownloads.next;
+  const windows = osChoice.value === 'windows';
+  nextStepText.innerHTML = windows
+    ? '<strong>Дальше:</strong> скачай .exe ниже, открой файл и подтверди установку. Python и IDLE устанавливаются вместе.'
+    : selectedDownloads.next;
+  installAction.hidden = !windows;
+  installerUnavailable.hidden = windows;
+  if (windows) updateInstallerSummary();
+}
+
+function currentExam() {
+  return document.querySelector('[data-exam][aria-selected="true"]').dataset.exam;
+}
+
+function updateInstallerSummary() {
+  const apps = getSelectedInstallerApps(currentExam(), [...document.querySelectorAll('[data-exam-panel]:not([hidden]) [data-select-app]:checked')]
+    .map((input) => input.dataset.selectApp));
+  const labels = { python: 'Python + IDLE', pycharm: 'PyCharm', libreoffice: 'LibreOffice', kumir: 'КуМир' };
+  installerSummary.textContent = apps.map((app) => labels[app]).join(' · ');
+  const hasKumir = apps.includes('kumir');
+  installNote.textContent = hasKumir
+    ? 'Файл установит выбранные программы. КуМир 2.1.0 RC11 загрузится с сайта НИИСИ и сверится по контрольной сумме. Windows может запросить подтверждение администратора.'
+    : 'Файл установит выбранные программы с серверов разработчиков. IDLE входит в установку Python. Windows может запросить подтверждение администратора.';
+  installNote.textContent += ' Файл установщика пока не подписан; возможна проверка SmartScreen.';
+  installNote.textContent += ' Нужны Windows 10/11 x64 и App Installer с WinGet.';
+}
+
+function downloadSelectedInstaller() {
+  if (osChoice.value !== 'windows') return;
+  const exam = currentExam();
+  const selected = [...document.querySelectorAll('[data-exam-panel]:not([hidden]) [data-select-app]:checked')]
+    .map((input) => input.dataset.selectApp);
+  window.location.assign(getInstallerDownloadUrl(exam, selected));
 }
 
 function selectExam(exam, focus = false, updateHash = true) {
@@ -133,14 +180,20 @@ function selectExam(exam, focus = false, updateHash = true) {
 }
 
 examTabs.forEach((tab, index) => {
-  tab.addEventListener('click', () => selectExam(tab.dataset.exam));
+  tab.addEventListener('click', () => { selectExam(tab.dataset.exam); updateDownloads(); });
   tab.addEventListener('keydown', (event) => {
     if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
     event.preventDefault();
     const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? examTabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : examTabs.length - 1)) % examTabs.length;
     selectExam(examTabs[nextIndex].dataset.exam, true);
+    updateDownloads();
   });
 });
+
+document.querySelectorAll('[data-select-app]:not(:disabled)').forEach((input) => {
+  input.addEventListener('change', updateInstallerSummary);
+});
+downloadInstallerButton.addEventListener('click', downloadSelectedInstaller);
 
 osChoice.value = detectOS();
 osChoice.addEventListener('change', updateDownloads);
@@ -148,6 +201,6 @@ const startingExam = location.hash === '#ege' ? 'ege' : 'oge';
 selectExam(startingExam);
 updateDownloads();
 window.addEventListener('hashchange', () => {
-  if (location.hash === '#oge') selectExam('oge', false, false);
-  if (location.hash === '#ege') selectExam('ege', false, false);
+  if (location.hash === '#oge') { selectExam('oge', false, false); updateDownloads(); }
+  if (location.hash === '#ege') { selectExam('ege', false, false); updateDownloads(); }
 });
