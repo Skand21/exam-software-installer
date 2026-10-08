@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 )
@@ -76,5 +77,17 @@ func TestWingetListContainsPackage(t *testing.T) {
 				t.Fatalf("wingetListContainsPackage() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestIsWingetNoApplicationsFound(t *testing.T) {
+	if !isWingetNoApplicationsFound(errors.New("exit status 0x8a150014")) {
+		t.Fatal("expected WinGet's empty inventory result to be recognized")
+	}
+	if isWingetNoApplicationsFound(errors.New("exit status 0x8a150011")) {
+		t.Fatal("unexpected WinGet errors must not be treated as an empty inventory")
+	}
+	if isWingetNoApplicationsFound(nil) {
+		t.Fatal("nil error must not be treated as an empty inventory")
 	}
 }

@@ -200,12 +200,16 @@ func wingetPackageInstalled(packageID string) (bool, error) {
 	cmd.Stdout = &output
 	cmd.Stderr = &output
 	if err := cmd.Run(); err != nil {
-		if strings.Contains(strings.ToLower(output.String()), "0x8a150014") {
+		if isWingetNoApplicationsFound(err) {
 			return false, nil
 		}
-		return false, err
+		return false, fmt.Errorf("%w: %s", err, strings.TrimSpace(output.String()))
 	}
 	return wingetListContainsPackage(output.String(), packageID), nil
+}
+
+func isWingetNoApplicationsFound(err error) bool {
+	return err != nil && strings.Contains(strings.ToLower(err.Error()), "0x8a150014")
 }
 
 func wingetListContainsPackage(output, packageID string) bool {
