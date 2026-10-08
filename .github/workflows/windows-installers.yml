@@ -119,7 +119,7 @@ jobs:
         run: |
           & "$PWD\installers\oge\KITON-Setup-OGE-Python-Kumir-LibreOffice.exe" --yes
           if ($LASTEXITCODE -ne 0) { throw "OGE installer returned $LASTEXITCODE" }
-          $entries = Get-ItemProperty 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue
+          $entries = Get-ItemProperty 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKCU:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue
           if (-not ($entries | Where-Object { $_.DisplayName -match 'Kumir|КуМир' })) { throw 'Kumir uninstall entry was not found after installation' }
 
   publish:

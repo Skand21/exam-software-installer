@@ -266,7 +266,7 @@ func installKumir(app program) error {
 }
 
 func verifyPythonIdle() {
-	cmd := exec.Command("py.exe", "-3.14", "-c", "import idlelib, tkinter; print('Python и IDLE доступны')")
+	cmd := exec.Command("py.exe", "-3.14", "-c", "import idlelib, tkinter; print('Python and IDLE are available')")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
