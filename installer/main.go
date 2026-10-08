@@ -168,7 +168,7 @@ func printPlan(examName string, selection []program) {
 	for i, app := range selection {
 		fmt.Printf("  %d. %s\n     Лицензия: %s\n", i+1, app.name, app.license)
 	}
-	fmt.Println("\nIDLE устанавливается вместе с Python. WinGet проверяет пакеты, КуМир проверяется по подписи и SHA-256.")
+	fmt.Println("\nIDLE устанавливается вместе с Python. WinGet проверяет пакеты, установщик КуМира сверяется по SHA-256.")
 	fmt.Println("Установка существующих приложений не обновляется автоматически.")
 }
 
@@ -258,29 +258,11 @@ func installKumir(app program) error {
 	if got := strings.ToUpper(fmt.Sprintf("%x", hasher.Sum(nil))); got != kumirSHA256 {
 		return fmt.Errorf("контрольная сумма не совпала; файл удалён (получено %s)", got)
 	}
-	if err := verifyKumirSignature(setupPath); err != nil {
-		return err
-	}
 	cmd := exec.Command(setupPath, "/S")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	return cmd.Run()
-}
-
-func verifyKumirSignature(path string) error {
-	powershell := "Import-Module Microsoft.PowerShell.Security -ErrorAction Stop; $signature = Get-AuthenticodeSignature -LiteralPath '" + strings.ReplaceAll(path, "'", "''") + "'; if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch 'FGU FNTS NIISI RAN') { exit 1 }"
-	ps := filepath.Join(os.Getenv("WINDIR"), "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
-	if _, err := os.Stat(ps); err != nil {
-		ps = "powershell.exe"
-	}
-	cmd := exec.Command(ps, "-NoProfile", "-NonInteractive", "-Command", powershell)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return errors.New("подпись установщика КуМир не прошла проверку; запуск отменён")
-	}
-	return nil
 }
 
 func verifyPythonIdle() {

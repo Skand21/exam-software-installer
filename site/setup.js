@@ -151,7 +151,7 @@ function updateInstallerSummary() {
   installerSummary.textContent = apps.map((app) => labels[app]).join(' · ');
   const hasKumir = apps.includes('kumir');
   installNote.textContent = hasKumir
-    ? 'Файл установит выбранные программы. КуМир 2.1.0 RC11 загрузится с сайта НИИСИ и проверится по подписи и контрольной сумме. Windows может запросить подтверждение администратора.'
+    ? 'Файл установит выбранные программы. КуМир 2.1.0 RC11 загрузится с сайта НИИСИ и сверится по контрольной сумме. Windows может запросить подтверждение администратора.'
     : 'Файл установит выбранные программы с серверов разработчиков. IDLE входит в установку Python. Windows может запросить подтверждение администратора.';
   installNote.textContent += ' Файл установщика пока не подписан; возможна проверка SmartScreen.';
   installNote.textContent += ' Нужны Windows 10/11 x64 и App Installer с WinGet.';
